@@ -17,6 +17,17 @@
     <a-entity id="ca-container" class="ca-container" rotation="30 0 0"></a-entity>
     <a-sky color="#e6e6e6"></a-sky>
     <a-light type="ambient"></a-light>
+
+    <!-- Add camera with controls -->
+    <a-entity position="0 10 30" rotation="0 -30 0">
+      <a-camera wasd-controls="acceleration: 100">
+        <a-entity cursor="fuse: true; fuseTimeout: 500"
+                  position="0 0 -1"
+                  geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                  material="color: black; shader: flat">
+        </a-entity>
+      </a-camera>
+    </a-entity>
   </a-scene>
 
   <script>
@@ -141,3 +152,4 @@
   </script>
 </body>
 </html>
+
