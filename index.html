@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cellular Automaton with A-Frame</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <a-scene vr-mode-ui="enabled: false">
+    <a-entity id="ca-container" class="ca-container" rotation="30 0 0"></a-entity>
+    <a-sky color="#e6e6e6"></a-sky>
+    <a-light type="ambient"></a-light>
+  </a-scene>
+
+  <script>
+    let width;
+    let height;
+    let cellSize;
+    let columns;
+    let rows;
+    let currentState;
+    let nextState;
+    let elArray;
+
+    let onColor = "black";
+    let offColor = "white";
+
+    let caContainer = null;
+
+    // Initializes the grid and state arrays
+    const initDefinition = () => {
+      width = 20;
+      height = 20;
+      cellSize = 1;
+      columns = Math.floor(width / cellSize);
+      rows = Math.floor(height / cellSize);
+
+      currentState = new Array(columns);
+      nextState = new Array(columns);
+      elArray = new Array(columns);
+      for (let i = 0; i < columns; i++) {
+        currentState[i] = new Array(rows).fill(0);
+        nextState[i] = new Array(rows).fill(0);
+        elArray[i] = new Array(rows);
+      }
+      console.log(elArray);
+    };
+
+    // Sets the position of the container in the scene
+    const initContainerPosition = () => {
+      caContainer = document.getElementById("ca-container");
+      caContainer.setAttribute(
+        "position",
+        `${-width / 2 + cellSize / 2} 8 ${-height * 1.2}`
+      );
+    };
+
+    // Creates a grid of cells and adds them to the container
+    const initAddGrid = () => {
+      for (let x = 0; x < columns; x++) {
+        for (let y = 0; y < rows; y++) {
+          const newEl = document.createElement("a-box");
+          newEl.setAttribute("color", offColor);
+          newEl.setAttribute("scale", `${cellSize} ${cellSize} ${cellSize}`);
+          newEl.setAttribute("position", `${y} 0 ${x}`);
+          newEl.setAttribute("opacity", "0.5");
+          caContainer.appendChild(newEl);
+          elArray[x][y] = newEl;
+        }
+      }
+    };
+
+    // Randomly initializes the state of the cells
+    const initRandomSet = () => {
+      for (let i = 0; i < columns; i++) {
+        for (let j = 0; j < rows; j++) {
+          if (i === 0 || j === 0 || i === columns - 1 || j === rows - 1) {
+            currentState[i][j] = 0;
+          } else {
+            currentState[i][j] = Math.round(Math.random());
+          }
+        }
+      }
+    };
+
+    // Draws the current state of the automaton and generates the next state
+    const drawCa = () => {
+      generate();
+      for (let i = 0; i < columns; i++) {
+        for (let j = 0; j < rows; j++) {
+          if (currentState[i][j] === 1) {
+            elArray[i][j].setAttribute("color", onColor);
+          } else {
+            elArray[i][j].setAttribute("color", offColor);
+          }
+        }
+      }
+    };
+
+    // Generates the next state of the automaton based on Conway's Game of Life rules
+    const generate = () => {
+      for (let x = 1; x < columns - 1; x++) {
+        for (let y = 1; y < rows - 1; y++) {
+          let neighbors = 0;
+          for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+              neighbors += currentState[x + i][y + j];
+            }
+          }
+          neighbors -= currentState[x][y];
+          // loneliness
+          if (currentState[x][y] === 1 && neighbors < 2) nextState[x][y] = 0;
+          // overpopulation
+          else if (currentState[x][y] === 1 && neighbors > 3) nextState[x][y] = 0;
+          // reproduction
+          else if (currentState[x][y] === 0 && neighbors === 3) nextState[x][y] = 1;
+          // stasis
+          else nextState[x][y] = currentState[x][y];
+        }
+      }
+      [currentState, nextState] = [nextState, currentState];
+    }
+
+    // Initializes everything and starts the automaton update loop
+    window.onload = () => {
+      initDefinition();
+      initContainerPosition();
+      initAddGrid();
+      initRandomSet();
+      setInterval(() => {
+        drawCa();
+      }, 100);
+    };
+  </script>
+</body>
+</html>
